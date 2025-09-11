@@ -21,9 +21,9 @@ sudo cd /opt/geotab
 sudo chown -R geotab-api-adapter:geotab-api-adapter /opt/geotab
 # Download geotab
 sudo -u geotab-api-adapter wget https://github.com/Geotab/mygeotab-api-adapter/releases/download/v3.11.0/MyGeotabAPIAdapter_SCD_linux-x64.zip
-sudo -u geotab-api-adapter unzip MyGeotab*
-sudo -E -u geotab-api-adapter envsubst <"~/$APP_NAME-iac/server/templates/appsettings.json" >./MyGeotab*/appsettings.json
-sudo cp templates/mygeotabadapter.service /etc/systemd/system/mygeotabadapter.service
+sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
+sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/$APP_NAME-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux/appsettings.json
+sudo cp "/home/ec2-user/$APP_NAME-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
 # Enable and start geotab service
 # sudo systemctl start mygeotabadapter
 sudo systemctl enable mygeotabadapter
