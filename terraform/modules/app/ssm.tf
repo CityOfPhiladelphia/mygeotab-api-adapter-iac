@@ -1,3 +1,12 @@
+resource "aws_ssm_parameter" "enable_auto_start" {
+  name  = "/${var.app_name}/${var.env_name}/enable_auto_start"
+  value = "yes"
+  type  = "String"
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 resource "aws_ssm_parameter" "rds_service_pw" {
   name   = "/${var.app_name}/${var.env_name}/rds_service_pw"
   value  = data.secretsmanager_login.rds_service.password

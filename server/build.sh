@@ -8,6 +8,7 @@ export RDS_PW=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/rds_service_p
 export GEOTAB_DB=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_db" --query "Parameter.Value" --output text)
 export GEOTAB_USER=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_user" --with-decryption --query "Parameter.Value" --output text)
 export GEOTAB_PW=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_pw" --with-decryption --query "Parameter.Value" --output text)
+export AUTOMATIC_START=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/enable_auto_start" --with-decryption --query "Parameter.Value" --output text)
 # Set hostname to `app-env-{old hostname}`
 sudo hostnamectl hostname "${APP_NAME}-${ENV_NAME}-$(hostnamectl hostname)"
 # Make sure we are in the "server" folder
@@ -21,7 +22,7 @@ sudo cd /opt/geotab
 sudo chown -R geotab-api-adapter:geotab-api-adapter /opt/geotab
 # Download geotab
 sudo -u geotab-api-adapter wget https://github.com/Geotab/mygeotab-api-adapter/releases/download/v3.11.0/MyGeotabAPIAdapter_SCD_linux-x64.zip
-sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
+sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64.zip
 sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/$APP_NAME-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux/appsettings.json
 sudo cp "/home/ec2-user/$APP_NAME-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
 # Enable and start geotab service
