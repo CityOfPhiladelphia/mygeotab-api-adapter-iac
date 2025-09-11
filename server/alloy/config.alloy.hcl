@@ -69,51 +69,6 @@ scrape_interval = "15s"
   forward_to = [prometheus.remote_write.prod.receiver]
 }
 
-// This block relabels metrics coming from cadvisor to add standard labels
-discovery.relabel "integrations_cadvisor" {
-  targets = prometheus.exporter.cadvisor.example.targets
-
-  rule {
-    // Set the instance label to the hostname of the machine
-    target_label = "instance"
-    replacement  = constants.hostname
-  }
-
-  rule {
-    // Set the app name
-    target_label = "app_name"
-    replacement = sys.env("APP_NAME")
-  }
-
-  rule {
-    // Set the env name
-    target_label = "env_name"
-    replacement = sys.env("ENV_NAME")
-  }
-
-  rule {
-    // Set a standard job name for all node_exporter metrics
-    target_label = "job"
-    replacement = "integrations/cadvisor"
-  }
-}
-
-// Host Cadvisor on the Docker socket to expose container metrics.
-prometheus.exporter.cadvisor "example" {
-  docker_host = "unix:///var/run/docker.sock"
-
-  storage_duration = "5m"
-}
-
-// Configure a prometheus.scrape component to collect cadvisor metrics.
-prometheus.scrape "scraper" {
-  targets    = discovery.relabel.integrations_cadvisor.output
-  forward_to = [ prometheus.remote_write.prod.receiver ]
-
-
-  scrape_interval = "10s"
-}
-
 // Configure a prometheus.remote_write component to send metrics to a Prometheus server.
 prometheus.remote_write "prod" {
   endpoint {
@@ -182,6 +137,18 @@ discovery.relabel "logs_integrations_integrations_node_exporter_journal_scrape" 
     // Extract log priority into a level label
     source_labels = ["__journal_priority_keyword"]
     target_label  = "level"
+  }
+
+  rule {
+    // Set the app name
+    target_label = "app_name"
+    replacement = sys.env("APP_NAME")
+  }
+
+  rule {
+    // Set the env name
+    target_label = "env_name"
+    replacement = sys.env("ENV_NAME")
   }
 }
 
