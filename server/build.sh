@@ -22,15 +22,15 @@ sudo chown -R geotab-api-adapter:geotab-api-adapter /opt/geotab
 sudo -u geotab-api-adapter wget https://github.com/Geotab/mygeotab-api-adapter/releases/download/v3.11.0/MyGeotabAPIAdapter_SCD_linux-x64.zip
 sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
 sudo -u geotab-api-adapter chmod +x ./MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabAPIAdapter
-sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/$APP_NAME-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json
-sudo cp "/home/ec2-user/$APP_NAME-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
+sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json
+sudo cp "/home/ec2-user/${APP_NAME}-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
 # Enable and start geotab service
 # sudo systemctl start mygeotabadapter
 sudo systemctl enable mygeotabadapter
 
 # Install alloy for monitoring
 # Alloy cannot be installed until its gpg key is imported
-cd /tmp
+cd "/home/ec2-user/${APP_NAME}-iac/server"
 wget -q -O gpg.key https://rpm.grafana.com/gpg.key
 sudo rpm --import gpg.key
 echo -e '[grafana]\nname=grafana\nbaseurl=https://rpm.grafana.com\nrepo_gpgcheck=1\nenabled=1\ngpgcheck=1\ngpgkey=https://rpm.grafana.com/gpg.key\nsslverify=1\nsslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.repo
