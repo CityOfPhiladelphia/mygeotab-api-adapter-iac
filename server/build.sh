@@ -25,8 +25,10 @@ sudo -u geotab-api-adapter chmod +x ./MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabA
 sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json
 sudo cp "/home/ec2-user/${APP_NAME}-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
 # Enable and start geotab service
-# sudo systemctl start mygeotabadapter
 sudo systemctl enable mygeotabadapter
+if [ "$AUTOMATIC_START" -eq == "yes"]; then
+  sudo systemctl start mygeotabadapter
+fi
 
 # Install alloy for monitoring
 # Alloy cannot be installed until its gpg key is imported
