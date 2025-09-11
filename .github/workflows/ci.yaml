@@ -1,0 +1,128 @@
+name: CI
+on: [push]
+
+env:
+  TF_DIR: "./terraform"
+
+jobs:
+  # I think we need actions runner to get this working
+  #truflehog:
+  #  runs-on: self-hosted
+  #  container: buildpack-deps:bookworm
+  #  steps:
+  #    - name: Install requirements
+  #      run: |
+  #        export DEBIAN_FRONTEND=noninteractive
+  #        apt-get update
+  #        apt-get install -y jq
+  #    - name: Checkout code
+  #      uses: actions/checkout@v4
+  #      with:
+  #        fetch-depth: 0
+  #    - name: Avoid dubious ownership error
+  #      run: |
+  #        git config --global --add safe.directory '*'
+  #    - name: Secret Scanning
+  #      uses: trufflesecurity/trufflehog@main
+  #      with:
+  #        extra_args: --results=verified,unknown
+  tffmt:
+    runs-on: self-hosted
+    container: buildpack-deps:bookworm
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout source code
+      - name: Setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          check-latest: true
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ env.TF_TOKEN }}
+      - name: Terraform Format
+        run: |
+          cd $TF_DIR
+          terraform fmt -recursive -check .
+
+  tflint:
+    runs-on: self-hosted
+    container: buildpack-deps:bookworm
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout source code
+
+      - name: Calculate tflint config hash
+        id: hash
+        run: |
+          echo "hash=$(sha256sum $TF_DIR/.tflint.hcl | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        name: Cache plugin dir
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ matrix.os }}-tflint-${{ steps.hash.outputs.hash }}
+
+      - uses: terraform-linters/setup-tflint@v4
+        name: Setup TFLint
+        with:
+          tflint_version: latest
+
+      - name: Show version
+        run: |
+          cd $TF_DIR
+          tflint --version
+
+      - name: Init TFLint
+        run: |
+          cd $TF_DIR
+          tflint --init
+        env:
+          # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint recursively
+        run: |
+          cd $TF_DIR
+          tflint --recursive -f compact
+  tfplan:
+    runs-on: self-hosted
+    container: buildpack-deps:bookworm
+
+    strategy:
+      matrix:
+        TF_DIR: [./terraform/env/prod, ./terraform/common]
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout source code
+      - name: Retrieve secrets from Keeper
+        id: ksecrets
+        uses: Keeper-Security/ksm-action@master
+        with:
+          keeper-secret-config: ${{ secrets.KSM_CONFIG }}
+          secrets: |-
+            sd33hj2cVYiRB4TEhAG_jg/field/password > env:TF_TOKEN
+            fNW6hNUZMImoX21IaGRcQw/field/login > env:AWS_ACCESS_KEY_ID
+            fNW6hNUZMImoX21IaGRcQw/field/password > env:AWS_SECRET_ACCESS_KEY
+      - name: Setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          check-latest: true
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ env.TF_TOKEN }}
+      - name: Terraform Init
+        run: |
+          cd ${{ matrix.TF_DIR }}
+          terraform init
+      - name: Terraform Plan
+        run: |
+          cd ${{ matrix.TF_DIR }}
+          terraform plan
+        env:
+          KEEPER_CREDENTIAL: ${{ secrets.KSM_CONFIG }}

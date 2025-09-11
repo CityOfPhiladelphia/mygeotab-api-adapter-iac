@@ -1,0 +1,15 @@
+[Unit]
+Description=MyGeotab API Adapter
+
+[Service]
+ExecStart=/opt/geotab/MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabAPIAdapter
+WorkingDirectory=/opt/geotab/MyGeotabAPIAdapter_SCD_linux-x64
+User=geotab-api-adapter
+Restart=always
+RestartSec=10
+SyslogIdentifier=mygeotab-adapter
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
