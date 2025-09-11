@@ -105,8 +105,8 @@ jobs:
           keeper-secret-config: ${{ secrets.KSM_CONFIG }}
           secrets: |-
             sd33hj2cVYiRB4TEhAG_jg/field/password > env:TF_TOKEN
-            fNW6hNUZMImoX21IaGRcQw/field/login > env:AWS_ACCESS_KEY_ID
-            fNW6hNUZMImoX21IaGRcQw/field/password > env:AWS_SECRET_ACCESS_KEY
+            9Vi7qUgp2ht2JvmZRs-YXA/field/login > env:AWS_ACCESS_KEY_ID
+            9Vi7qUgp2ht2JvmZRs-YXA/field/password > env:AWS_SECRET_ACCESS_KEY
       - name: Setup Nodejs
         uses: actions/setup-node@v4
         with:
