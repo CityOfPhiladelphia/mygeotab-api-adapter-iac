@@ -43,7 +43,7 @@ module "app" {
   rds_snapshot_arn  = "arn:aws:rds:us-east-1:880708401960:snapshot:mygeotabapiadapter-prod-migration-correct-kms"
   rds_instance_type = "db.t4g.medium"
   # EC2
-  ec2_instance_type = "t3.mediun"
+  ec2_instance_type = "t3.medium"
   ssh_key_name      = "citygeo"
   build_branch      = "init"
 }
