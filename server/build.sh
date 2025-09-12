@@ -40,7 +40,12 @@ echo "psql -h $RDS_HOST -d $RDS_DB -U $RDS_USER" >/home/ec2-user/connect-db.sh
 chmod +x /home/ec2-user/connect-db.sh
 sudo cp /home/ec2-user/.pgpass /root/.pgpass
 sudo cp /home/ec2-user/connect-db.sh /root/connect-db.sh
-sudo -E envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" | sudo tee /root/auto_restarter.sh
+envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" | sudo tee /root/auto_restarter.sh
+
+# Limit journal size to 1gb (default is 4gb which is probably fine)
+echo "SystemMaxFileSize=1G" | sudo tee -a /etc/systemd/journald.conf
+echo "SystemMaxUse=1G" | sudo tee -a /etc/systemd/journald.conf
+sudo systemctl restart systemd-journald
 
 # Install alloy for monitoring
 # Alloy cannot be installed until its gpg key is imported
