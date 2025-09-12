@@ -10,9 +10,10 @@ export GEOTAB_USER=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_u
 export GEOTAB_PW=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_pw" --with-decryption --query "Parameter.Value" --output text)
 export AUTOMATIC_START=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/enable_auto_start" --with-decryption --query "Parameter.Value" --output text)
 # Set hostname to `app-env-{old hostname}`
-sudo hostnamectl hostname "${APP_NAME}-${ENV_NAME}-$(hostnamectl hostname)"
+sudo hostnamectl hostname "${APP_NAME}.${ENV_NAME}-$(hostnamectl hostname)"
+sudo timedatectl set-timezone America/New_York
 # Install dependencies
-sudo dnf install -y libicu
+sudo dnf install -y libicu postgresql15
 # Create geotab user
 sudo useradd geotab-api-adapter
 sudo mkdir /opt/geotab
@@ -24,11 +25,22 @@ sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
 sudo -u geotab-api-adapter chmod +x ./MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabAPIAdapter
 sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json
 sudo cp "/home/ec2-user/${APP_NAME}-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
+# UPDATE PSQL todo:
+#     UPDATE public."OServiceTracking2" set "AdapterMachineName"='$(hostnamectl hostname)';
 # Enable and start geotab service
 sudo systemctl enable mygeotabadapter
-if [ "$AUTOMATIC_START" -eq == "yes"]; then
+if [[ "$AUTOMATIC_START" == "yes" ]]; then
   sudo systemctl start mygeotabadapter
 fi
+
+# Create .pgpass file for easy psql
+echo "$RDS_HOST:5432:$RDS_DB:$RDS_USER:$RDS_PW" >/home/ec2-user/.pgpass
+chmod 600 /home/ec2-user/.pgpass
+echo "psql -h $RDS_HOST -d $RDS_DB -U $RDS_USER" >/home/ec2-user/connect-db.sh
+chmod +x /home/ec2-user/connect-db.sh
+sudo cp /home/ec2-user/.pgpass /root/.pgpass
+sudo cp /home/ec2-user/connect-db.sh /root/connect-db.sh
+sudo -E envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" >/root/auto_restarter.sh
 
 # Install alloy for monitoring
 # Alloy cannot be installed until its gpg key is imported

@@ -23,7 +23,7 @@ resource "aws_ssm_parameter" "rds_service_user" {
 
 resource "aws_ssm_parameter" "rds_host" {
   name  = "/${var.app_name}/${var.env_name}/rds_host"
-  value = aws_db_instance.postgres.endpoint
+  value = aws_db_instance.postgres.address
   type  = "String"
 }
 
