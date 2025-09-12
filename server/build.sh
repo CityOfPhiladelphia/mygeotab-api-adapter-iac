@@ -13,7 +13,7 @@ export AUTOMATIC_START=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/enab
 sudo hostnamectl hostname "${APP_NAME}.${ENV_NAME}-$(hostnamectl hostname)"
 sudo timedatectl set-timezone America/New_York
 # Install dependencies
-sudo dnf install -y libicu postgresql15
+sudo dnf install -y libicu postgresql15 cronie
 # Create geotab user
 sudo useradd geotab-api-adapter
 sudo mkdir /opt/geotab
@@ -25,8 +25,7 @@ sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
 sudo -u geotab-api-adapter chmod +x ./MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabAPIAdapter
 sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json
 sudo cp "/home/ec2-user/${APP_NAME}-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
-# UPDATE PSQL todo:
-#     UPDATE public."OServiceTracking2" set "AdapterMachineName"='$(hostnamectl hostname)';
+
 # Enable and start geotab service
 sudo systemctl enable mygeotabadapter
 if [[ "$AUTOMATIC_START" == "yes" ]]; then
@@ -40,7 +39,11 @@ echo "psql -h $RDS_HOST -d $RDS_DB -U $RDS_USER" >/home/ec2-user/connect-db.sh
 chmod +x /home/ec2-user/connect-db.sh
 sudo cp /home/ec2-user/.pgpass /root/.pgpass
 sudo cp /home/ec2-user/connect-db.sh /root/connect-db.sh
-envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" | sudo tee /root/auto_restarter.sh
+
+# Setup auto restarter
+envsubst '$RDS_HOST $RDS_DB $RDS_USER' <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" | sudo tee /root/auto_restarter.sh
+sudo chmod u+x /root/auto_restarter.sh
+echo "* * * * * root /root/auto_restarter.sh" | sudo tee /etc/cron.d/geotab_auto_restarter
 
 # Limit journal size to 1gb (default is 4gb which is probably fine)
 echo "SystemMaxFileSize=1G" | sudo tee -a /etc/systemd/journald.conf
