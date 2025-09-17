@@ -1,0 +1,59 @@
+name: Check for new AWS AMIs
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  update_ami:
+    runs-on: self-hosted
+    container:
+      image: buildpack-deps:bookworm
+    strategy:
+      matrix:
+        TF_ENV: [prod]
+    steps:
+      - name: Retrieve secrets from Keeper
+        id: ksecrets
+        uses: Keeper-Security/ksm-action@master
+        with:
+          keeper-secret-config: ${{ secrets.KSM_CONFIG }}
+          secrets: |-
+            9Vi7qUgp2ht2JvmZRs-YXA/field/login > env:AWS_ACCESS_KEY_ID
+            9Vi7qUgp2ht2JvmZRs-YXA/field/password > env:AWS_SECRET_ACCESS_KEY
+      - name: Install AWSCLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -qq awscliv2.zip
+          ./aws/install
+      - name: Install JQ
+        run: apt-get update && apt-get install -y jq
+      - uses: actions/checkout@v4
+        name: Checkout source code
+      - name: Get current AMI
+        id: current_ami
+        run: |
+          CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars")
+          echo "id=$CUR_AMI_ID" | tee -a $GITHUB_OUTPUT
+      - name: Get new AMI
+        id: new_ami
+        run: |
+          NEW_AMI_OUTPUT=$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64 --region us-east-1)
+          NEW_AMI_ID=$(echo $NEW_AMI_OUTPUT | jq -r '.Parameters[0].Value')
+          NEW_AMI_ARN=$(echo $NEW_AMI_OUTPUT | jq -r '.Parameters[0].ARN')
+          echo "id=$NEW_AMI_ID" | tee -a $GITHUB_OUTPUT
+          echo "arn=$NEW_AMI_ARN" | tee -a $GITHUB_OUTPUT
+      - name: Update AMI id
+        if: steps.current_ami.outputs.id != steps.new_ami.outputs.id
+        run: |
+          echo "# AMI ARN: ${{ steps.new_ami.outputs.arn }}" > "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+          echo "ec2_ami_id = \"${{ steps.new_ami.outputs.id }}\"" >> "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+      - name: Create Pull Request
+        if: steps.current_ami.outputs.id != steps.new_ami.outputs.id
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Automated PR: Update AMI id"
+          title: "Automated PR: Update AMI id"
+          body: "This PR was created automatically by a GitHub Action."
+          branch: "update-${{ matrix.TF_ENV }}-ami-${{ steps.new_ami.outputs.id }}" # The new branch to create for the PR
+          base: "main" # The target branch for the PR
