@@ -28,6 +28,10 @@ provider "aws" {
 provider "secretsmanager" {
 }
 
+variable "ec2_ami_id" {
+  type = string
+}
+
 module "app" {
   source = "../../modules/app"
 
@@ -46,5 +50,6 @@ module "app" {
   # EC2
   ec2_instance_type = "t3.medium"
   ssh_key_name      = "citygeo"
+  ec2_ami_id        = var.ec2_ami_id
   build_branch      = "init"
 }
