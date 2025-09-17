@@ -43,17 +43,17 @@ jobs:
           echo "id=$NEW_AMI_ID" | tee -a $GITHUB_OUTPUT
           echo "arn=$NEW_AMI_ARN" | tee -a $GITHUB_OUTPUT
       - name: Update AMI id
-        if: steps.current_ami.output.id != steps.new_ami.output.id
+        if: steps.current_ami.outputs.id != steps.new_ami.outputs.id
         run: |
-          echo "# AMI ARN: ${{ steps.new_ami.output.arn }}" > "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
-          echo "ec2_ami_id = \"${{ steps.new_ami.output.id }}\"" >> "./terraform/ev/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+          echo "# AMI ARN: ${{ steps.new_ami.outputs.arn }}" > "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+          echo "ec2_ami_id = \"${{ steps.new_ami.outputs.id }}\"" >> "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
       - name: Create Pull Request
-        if: steps.current_ami.output.id != steps.new_ami.output.id
+        if: steps.current_ami.outputs.id != steps.new_ami.outputs.id
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Automated PR: Update AMI id"
           title: "Automated PR: Update AMI id"
           body: "This PR was created automatically by a GitHub Action."
-          branch: "update-${{ matrix.TF_ENV }}-ami-${{ steps.new_ami.output.id }}" # The new branch to create for the PR
+          branch: "update-${{ matrix.TF_ENV }}-ami-${{ steps.new_ami.outputs.id }}" # The new branch to create for the PR
           base: "main" # The target branch for the PR
