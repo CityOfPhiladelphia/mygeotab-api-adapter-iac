@@ -33,27 +33,27 @@ jobs:
         id: current_ami
         run: |
           CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars")
-          echo "id=$CUR_AMI_ID" >> $GITHUB_OUTPUT
+          echo "id=$CUR_AMI_ID" | tee -a $GITHUB_OUTPUT
       - name: Get new AMI
         id: new_ami
         run: |
           NEW_AMI_OUTPUT=$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64 --region us-east-1)
           NEW_AMI_ID=$(echo $NEW_AMI_OUTPUT | jq -r '.Parameters[0].Value')
           NEW_AMI_ARN=$(echo $NEW_AMI_OUTPUT | jq -r '.Parameters[0].ARN')
-          echo "id=$NEW_AMI_ID" >> $GITHUB_OUTPUT
-          echo "arn=$NEW_AMI_ARN" >> $GITHUB_OUTPUT
+          echo "id=$NEW_AMI_ID" | tee -a $GITHUB_OUTPUT
+          echo "arn=$NEW_AMI_ARN" | tee -a $GITHUB_OUTPUT
       - name: Update AMI id
-        if: steps.current_ami.id != steps.new_ami.id
+        if: steps.current_ami.output.id != steps.new_ami.output.id
         run: |
-          echo "# AMI ARN: ${{ steps.new_ami.arn }}" > "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
-          echo "ec2_ami_id = \"${{ steps.new_ami.id }}\"" >> "./terraform/ev/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+          echo "# AMI ARN: ${{ steps.new_ami.output.arn }}" > "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+          echo "ec2_ami_id = \"${{ steps.new_ami.output.id }}\"" >> "./terraform/ev/${{ matrix.TF_ENV }}/ami.auto.tfvars"
       - name: Create Pull Request
-        if: steps.current_ami.id != steps.new_ami.id
+        if: steps.current_ami.output.id != steps.new_ami.output.id
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Automated PR: Update AMI id"
           title: "Automated PR: Update AMI id"
           body: "This PR was created automatically by a GitHub Action."
-          branch: "update-${{ matrix.TF_ENV }}-ami-${{ steps.new_ami_id }}" # The new branch to create for the PR
+          branch: "update-${{ matrix.TF_ENV }}-ami-${{ steps.new_ami.output.id }}" # The new branch to create for the PR
           base: "main" # The target branch for the PR
