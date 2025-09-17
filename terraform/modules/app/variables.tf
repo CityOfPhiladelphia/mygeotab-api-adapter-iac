@@ -47,6 +47,10 @@ variable "ssh_key_name" {
   type = string
 }
 
+variable "ec2_ami_id" {
+  type = string
+}
+
 variable "build_branch" {
   type        = string
   default     = "main"

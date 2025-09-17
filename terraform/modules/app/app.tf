@@ -1,33 +1,8 @@
-# Always get the latest amazon linux AMI
-data "aws_ami" "amazon_linux_latest" {
-  owners      = ["amazon"]
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023.*-x86_64"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-}
-
 resource "aws_launch_template" "main" {
   name = "${var.app_name}-${var.env_name}"
 
   instance_type          = var.ec2_instance_type
-  image_id               = data.aws_ami.amazon_linux_latest.id
+  image_id               = var.ec2_ami_id
   update_default_version = true
   vpc_security_group_ids = [aws_security_group.ec2.id]
   key_name               = var.ssh_key_name
