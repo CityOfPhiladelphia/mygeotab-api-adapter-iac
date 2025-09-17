@@ -32,7 +32,7 @@ jobs:
       - name: Get current AMI
         id: current_ami
         run: |
-          CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "${{ matrix.TF_DIR }}/ami.auto.tfvars")
+          CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars")
           echo "id=$CUR_AMI_ID" >> $GITHUB_OUTPUT
       - name: Get new AMI
         id: new_ami
