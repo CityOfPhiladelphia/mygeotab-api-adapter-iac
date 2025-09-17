@@ -10,7 +10,7 @@ jobs:
       image: buildpack-deps:bookworm
     strategy:
       matrix:
-        TF_DIR: [./terraform/env/prod]
+        TF_ENV: [prod]
     steps:
       - name: Retrieve secrets from Keeper
         id: ksecrets
@@ -29,18 +29,31 @@ jobs:
         run: apt-get update && apt-get install -y jq
       - uses: actions/checkout@v4
         name: Checkout source code
-      - name: Update AMI if there is a new one
+      - name: Get current AMI
+        id: current_ami
         run: |
-          echo "Retrieving latest Amazon AMI"
-          AMI_OUTPUT=$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64 --region us-east-1)
-          AMI_ID=$(echo $AMI_OUTPUT | jq -r '.Parameters[0].Value')
-          AMI_ARN=$(echo $AMI_OUTPUT | jq -r '.Parameters[0].ARN')
-          echo "Retrieved latest AMI, now checking current AMI"
           CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "${{ matrix.TF_DIR }}/ami.auto.tfvars")
-          if [[ "$CUR_AMI_ID" != "$AMI_ID" ]]; then
-            echo "AMI is different"
-            echo "# AMI ARN: $AMI_ARN" > "${{ matrix.TF_DIR }}/ami.auto.tfvars"
-            echo "ec2_ami_id = \"${AMI_ID}\"" >> "${{ matrix.TF_DIR }}/ami.auto.tfvars"
-          else
-            echo "AMI is same"
-          fi
+          echo "id=$CUR_AMI_ID" >> $GITHUB_OUTPUT
+      - name: Get new AMI
+        id: new_ami
+        run: |
+          NEW_AMI_OUTPUT=$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64 --region us-east-1)
+          NEW_AMI_ID=$(echo $NEW_AMI_OUTPUT | jq -r '.Parameters[0].Value')
+          NEW_AMI_ARN=$(echo $NEW_AMI_OUTPUT | jq -r '.Parameters[0].ARN')
+          echo "id=$NEW_AMI_ID" >> $GITHUB_OUTPUT
+          echo "arn=$NEW_AMI_ARN" >> $GITHUB_OUTPUT
+      - name: Update AMI id
+        if: steps.current_ami.id != steps.new_ami.id
+        run: |
+          echo "# AMI ARN: ${{ steps.new_ami.arn }}" > "./terraform/env/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+          echo "ec2_ami_id = \"${{ steps.new_ami.id }}\"" >> "./terraform/ev/${{ matrix.TF_ENV }}/ami.auto.tfvars"
+      - name: Create Pull Request
+        if: steps.current_ami.id != steps.new_ami.id
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Automated PR: Update AMI id"
+          title: "Automated PR: Update AMI id"
+          body: "This PR was created automatically by a GitHub Action."
+          branch: "update-${{ matrix.TF_ENV }}-ami-${{ steps.new_ami_id }}" # The new branch to create for the PR
+          base: "main" # The target branch for the PR
