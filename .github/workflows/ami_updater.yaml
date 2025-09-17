@@ -1,4 +1,4 @@
-name: Check for new AWS AMIs
+name: Update AMI
 on:
   workflow_dispatch:
   schedule:
