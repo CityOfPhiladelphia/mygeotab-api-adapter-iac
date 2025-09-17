@@ -26,7 +26,7 @@ jobs:
           unzip -qq awscliv2.zip
           ./aws/install
       - name: Install JQ
-        run: apt install -y jq
+        run: apt-get update && apt-get install -y jq
       - uses: actions/checkout@v4
         name: Checkout source code
       - name: Update AMI if there is a new one
