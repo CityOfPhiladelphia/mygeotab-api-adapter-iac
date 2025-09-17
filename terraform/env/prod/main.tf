@@ -40,8 +40,9 @@ module "app" {
   db_subnet_ids  = ["subnet-024fed84936e66390", "subnet-07ca6947c3468a672"]
   asg_subnet_ids = ["subnet-024fed84936e66390", "subnet-07ca6947c3468a672"]
   # RDS
-  rds_snapshot_arn  = "arn:aws:rds:us-east-1:880708401960:snapshot:mygeotabapiadapter-prod-migration-correct-kms"
-  rds_instance_type = "db.t4g.medium"
+  rds_snapshot_arn   = "arn:aws:rds:us-east-1:880708401960:snapshot:mygeotab-api-adapter-smaller-size"
+  rds_engine_version = "17.6"
+  rds_instance_type  = "db.t4g.medium"
   # EC2
   ec2_instance_type = "t3.medium"
   ssh_key_name      = "citygeo"

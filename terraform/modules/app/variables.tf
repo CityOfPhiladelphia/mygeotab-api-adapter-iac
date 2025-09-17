@@ -34,6 +34,10 @@ variable "rds_snapshot_arn" {
   default = ""
 }
 
+variable "rds_engine_version" {
+  type = string
+}
+
 # EC2
 variable "ec2_instance_type" {
   type = string

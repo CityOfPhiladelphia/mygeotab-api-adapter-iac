@@ -6,6 +6,14 @@
 
 * Alloy - Meta monitoring tool. Installed on the base ec2 for maximum metric collection information
 
+### AWS Infrastructure
+
+AWS infrastructure is deployed with Terraform. Although the application stack is currently deployed as a monolithic server, the AWS infrastructure was still designed in a way to enable future migration to a clustered Kubernetes stack.
+
+#### Architecture Diagram
+
+![architecture diagram](docs/arch_diagram.svg)
+
 ## MyGeotab API Adapter Notes
 
 This application has been very strange to set up. It does not support many modern features such as clustering or scaling. The database setup involves manually running a series of 10 or so scripts.

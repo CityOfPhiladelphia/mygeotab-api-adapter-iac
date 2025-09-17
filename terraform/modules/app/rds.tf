@@ -7,11 +7,11 @@ resource "aws_db_subnet_group" "postgres" {
 
 resource "aws_db_instance" "postgres" {
   identifier            = "${var.app_name}-${var.env_name}"
-  allocated_storage     = 1000
-  max_allocated_storage = 1500
+  allocated_storage     = 500
+  max_allocated_storage = 600
   storage_type          = "gp3"
   engine                = "postgres"
-  engine_version        = "17.4"
+  engine_version        = var.rds_engine_version
   db_subnet_group_name  = aws_db_subnet_group.postgres.name
   # Should be empty if restoring a snapshot
   db_name                    = length(var.rds_snapshot_arn) > 0 ? "" : "postgres"
