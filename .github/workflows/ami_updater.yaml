@@ -1,0 +1,30 @@
+name: Check for new AWS AMIs
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  update_ami:
+    runs-on: self-hosted
+    container:
+      image: buildpack-deps:bookworm
+    steps:
+      - name: Retrieve secrets from Keeper
+        id: ksecrets
+        uses: Keeper-Security/ksm-action@master
+        with:
+          keeper-secret-config: ${{ secrets.KSM_CONFIG }}
+          secrets: |-
+            9Vi7qUgp2ht2JvmZRs-YXA/field/login > env:AWS_ACCESS_KEY_ID
+            9Vi7qUgp2ht2JvmZRs-YXA/field/password > env:AWS_SECRET_ACCESS_KEY
+      - name: Install AWSCLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+      - uses: actions/checkout@v4
+        name: Checkout source code
+      - name: Get latest AMI
+        run: |
+          AMI_OUTPUT=$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64 --region us-east-1)
+          echo $AMI_OUTPUT
