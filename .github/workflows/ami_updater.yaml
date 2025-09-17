@@ -8,6 +8,9 @@ jobs:
     runs-on: self-hosted
     container:
       image: buildpack-deps:bookworm
+    strategy:
+      matrix:
+        TF_DIR: [./terraform/env/prod]
     steps:
       - name: Retrieve secrets from Keeper
         id: ksecrets
@@ -24,7 +27,18 @@ jobs:
           ./aws/install
       - uses: actions/checkout@v4
         name: Checkout source code
-      - name: Get latest AMI
+      - name: Update AMI if there is a new one
         run: |
+          echo "Retrieving latest Amazon AMI"
           AMI_OUTPUT=$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64 --region us-east-1)
-          echo $AMI_OUTPUT
+          AMI_ID=$(echo $AMI_OUTPUT | jq -r '.Parameters[0].Value')
+          AMI_ARN=$(echo $AMI_OUTPUT | jq -r '.Parameters[0].ARN')
+          echo "Retrieved latest AMI, now checking current AMI"
+          CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "$TF_DIR/ami.auto.tfvars")
+          if [[ "$CUR_AMI_ID" != "$AMI_ID" ]]; then
+            echo "AMI is different"
+            echo "# AMI ARN: $AMI_ARN" > terraform/env/prod/ami.auto.tfvars
+            echo "ec2_ami_id = \"${AMI_ID}\"" >> terraform/env/prod/ami.auto.tfvars
+          else
+            echo "AMI is same"
+          fi
