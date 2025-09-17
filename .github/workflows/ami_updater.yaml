@@ -36,11 +36,11 @@ jobs:
           AMI_ID=$(echo $AMI_OUTPUT | jq -r '.Parameters[0].Value')
           AMI_ARN=$(echo $AMI_OUTPUT | jq -r '.Parameters[0].ARN')
           echo "Retrieved latest AMI, now checking current AMI"
-          CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "$TF_DIR/ami.auto.tfvars")
+          CUR_AMI_ID=$(grep -oP 'ec2_ami_id\s*=\s*"\Kami-[a-zA-Z0-9]+' "${{ matrix.TF_DIR }}/ami.auto.tfvars")
           if [[ "$CUR_AMI_ID" != "$AMI_ID" ]]; then
             echo "AMI is different"
-            echo "# AMI ARN: $AMI_ARN" > terraform/env/prod/ami.auto.tfvars
-            echo "ec2_ami_id = \"${AMI_ID}\"" >> terraform/env/prod/ami.auto.tfvars
+            echo "# AMI ARN: $AMI_ARN" > "${{ matrix.TF_DIR }}/ami.auto.tfvars"
+            echo "ec2_ami_id = \"${AMI_ID}\"" >> "${{ matrix.TF_DIR }}/ami.auto.tfvars"
           else
             echo "AMI is same"
           fi
