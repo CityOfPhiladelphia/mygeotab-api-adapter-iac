@@ -1,3 +1,4 @@
+#!/bin/bash
 export APP_NAME=$1
 export ENV_NAME=$2
 # Load secrets and parameters
@@ -17,13 +18,13 @@ sudo dnf install -y libicu postgresql15 cronie
 # Create geotab user
 sudo useradd geotab-api-adapter
 sudo mkdir /opt/geotab
-cd /opt/geotab
+cd /opt/geotab || exit
 sudo chown -R geotab-api-adapter:geotab-api-adapter /opt/geotab
 # Download geotab
 sudo -u geotab-api-adapter wget https://github.com/Geotab/mygeotab-api-adapter/releases/download/v3.11.0/MyGeotabAPIAdapter_SCD_linux-x64.zip
 sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
 sudo -u geotab-api-adapter chmod +x ./MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabAPIAdapter
-sudo -E -u geotab-api-adapter envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" >./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json
+envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" | sudo -u geotab-api-adapter tee ./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json >/dev/null
 sudo cp "/home/ec2-user/${APP_NAME}-iac/server/templates/mygeotabadapter.service" /etc/systemd/system/mygeotabadapter.service
 
 # Enable and start geotab service
@@ -41,6 +42,7 @@ sudo cp /home/ec2-user/.pgpass /root/.pgpass
 sudo cp /home/ec2-user/connect-db.sh /root/connect-db.sh
 
 # Setup auto restarter
+# shellcheck disable=SC2016
 envsubst '$RDS_HOST $RDS_DB $RDS_USER' <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" | sudo tee /root/auto_restarter.sh
 sudo chmod u+x /root/auto_restarter.sh
 echo "* * * * * root /root/auto_restarter.sh" | sudo tee /etc/cron.d/geotab_auto_restarter
@@ -52,7 +54,7 @@ sudo systemctl restart systemd-journald
 
 # Install alloy for monitoring
 # Alloy cannot be installed until its gpg key is imported
-cd "/home/ec2-user/${APP_NAME}-iac/server"
+cd "/home/ec2-user/${APP_NAME}-iac/server" || exit
 wget -q -O gpg.key https://rpm.grafana.com/gpg.key
 sudo rpm --import gpg.key
 echo -e '[grafana]\nname=grafana\nbaseurl=https://rpm.grafana.com\nrepo_gpgcheck=1\nenabled=1\ngpgcheck=1\ngpgkey=https://rpm.grafana.com/gpg.key\nsslverify=1\nsslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.repo

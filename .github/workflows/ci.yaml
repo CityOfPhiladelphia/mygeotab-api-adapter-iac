@@ -5,6 +5,17 @@ env:
   TF_DIR: "./terraform"
 
 jobs:
+  shellcheck:
+    runs-on: self-hosted
+    container:
+      image: buildpack-deps:bookworm
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout source code
+      - name: Install shellcheck
+        run: apt update && apt install shellcheck
+      - name: Run ShellCheck
+        run: shellcheck -e SC2155 server/build.sh
   # I think we need actions runner to get this working
   #truflehog:
   #  runs-on: self-hosted

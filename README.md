@@ -2,17 +2,77 @@
 
 ## Components
 
-### Uncontainerized
+All components are deployed directly on the server, none are containerized
 
-* Alloy - Meta monitoring tool. Installed on the base ec2 for maximum metric collection information
+* MyGeotabApiAdapter
+* Alloy - Sends metrics and log files to Grafana
+* Auto restarter cron job
+
+## Design Choices
+
+### Server Infrastructure
+
+The MyGeotabApiAdapter application does not support any type of clustering or high availability, so it is deployed as a singleton. There were no officially supported docker containers for it either, so it is simply installed on the server.
+
+#### Server provisioning
+
+Upon launching an EC2 from the autoscaling group (or directly from the launch template), a short userdata script runs which downloads this Git repository and then executes the [servers/build.sh](server/build.sh) script.
+
+#### Auto restarter cron job
+
+On one occasion, this application crashed with vague error messages, but importantly did not report that to `systemctl`, which still reported it was running. Since `systemctl` can not reliably determine if the application is running or not, a custom script was written that checks every minute when the most recent database entry was made. Since this application should continuously write to the database, any delay of more than 5 minutes will automatically restart the service (only if it claims it is running).
 
 ### AWS Infrastructure
 
-AWS infrastructure is deployed with Terraform. Although the application stack is currently deployed as a monolithic server, the AWS infrastructure was still designed in a way to enable future migration to a clustered Kubernetes stack.
+AWS infrastructure is deployed with Terraform.
+
+Despite the lack of clustering support, an autoscaling group is still used to deploy the server because it simplifies the process and maintenance. This autoscaling group should always have its capacity set to 1 except during maintenance.
 
 #### Architecture Diagram
 
 ![architecture diagram](docs/arch_diagram.svg)
+
+### Terraform infrastructure
+
+Although there is only one environment (prod), the terraform infrastructure was designed to enable multiple environments if the need arises. There is a primary module in [terraform/modules/app](terraform/modules/app) which essentially includes the entire core infrastructure. The environments in the [terraform/env](terraform/env) folder each use this module with variables relevant to that environment. There is also an inline project in [terraform/common](terraform/common) which creates the common KMS. Any parameters that may be needed by the server are also deployed as SSM (systems manager) parameters.
+
+### CI/CD infrastructure
+
+Use of the CI/CD enables automatic deployment and testing of the infrastructure.
+
+#### CI - All branches and pull requests
+
+* tflint - Checks invalid values, prohibits poor coding practices
+* terraform fmt - Ensures consistent formatting
+* terraform plan - Investigate what Terraform will do perform merging to main
+* shellcheck - Lints [build.sh](server/build.sh)
+
+#### CD - Main branch only
+
+* terraform apply - Deploys Terraform infrastructure
+* [indirect] On launch, a server downloads the code from the main branch
+
+## Development
+
+When developing new features, it is best to test the full functionality before merging to `main`. This is because the CI integration, while thorough for verifying the Terraform code itself, does not verify that the actual code will work as intended.
+
+Since we only budgeted a single environment, the prod environment, any development would either require downtime, or would require a dev environment to be spun up temporarily. Please work with Ryan Weast.
+
+### Getting credentials locally
+
+Check out the credentials that are pulled from Keeper in the [.github/workflows](.github/workflows) files. Set those up locally.
+
+### Developing AWS / Terraform code
+
+Just use `terraform apply` locally from your development machine.
+
+### Developing server configuration
+
+To test server configuration (the server/ folder), push your code to a non-main branch and update the `build_branch` parameter in terraform (in terraform/env/ folder) to that branch name. Then, use Terraform apply to update the launch template to pull from that new build branch, then replace the server. Since we only have the `prod` environment, this would cause outage. Make sure to change the `build_branch` back to main before merging the changes to main.
+
+## Maintenance
+
+See [docs/maintenance.md](docs/maintenance.md)
 
 ## MyGeotab API Adapter Notes
 
