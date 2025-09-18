@@ -95,7 +95,7 @@ Are handled automatically by AWS RDS
 
 ### Postgres Upgrades
 
-Both Postgres minor and major upgrades result in some downtime, but minor upgrades are very quick. While minor upgrades can be performed automatically by AWS, because they result in some downtime with non-clustered DBs, we do them manually.
+Both Postgres minor and major upgrades result in some downtime, but minor upgrades are very quick. While minor upgrades can be performed automatically by AWS, they result in some downtime with non-clustered DBs, so we do them manually.
 
 Minor upgrades should generally be performed whenever they become available.
 
