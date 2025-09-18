@@ -9,7 +9,8 @@ export RDS_PW=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/rds_service_p
 export GEOTAB_DB=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_db" --query "Parameter.Value" --output text)
 export GEOTAB_USER=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_user" --with-decryption --query "Parameter.Value" --output text)
 export GEOTAB_PW=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/geotab_pw" --with-decryption --query "Parameter.Value" --output text)
-export AUTOMATIC_START=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/enable_auto_start" --with-decryption --query "Parameter.Value" --output text)
+export AUTOMATIC_START=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/enable_auto_start" --query "Parameter.Value" --output text)
+export APP_VERSION=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/app_version" --query "Parameter.Value" --output text)
 # Set hostname to `app-env-{old hostname}`
 sudo hostnamectl hostname "${APP_NAME}.${ENV_NAME}-$(hostnamectl hostname)"
 sudo timedatectl set-timezone America/New_York
@@ -21,7 +22,7 @@ sudo mkdir /opt/geotab
 cd /opt/geotab || exit
 sudo chown -R geotab-api-adapter:geotab-api-adapter /opt/geotab
 # Download geotab
-sudo -u geotab-api-adapter wget https://github.com/Geotab/mygeotab-api-adapter/releases/download/v3.11.0/MyGeotabAPIAdapter_SCD_linux-x64.zip
+sudo -u geotab-api-adapter wget "https://github.com/Geotab/mygeotab-api-adapter/releases/download/$APP_VERSION/MyGeotabAPIAdapter_SCD_linux-x64.zip"
 sudo -u geotab-api-adapter unzip MyGeotabAPIAdapter_SCD_linux-x64
 sudo -u geotab-api-adapter chmod +x ./MyGeotabAPIAdapter_SCD_linux-x64/MyGeotabAPIAdapter
 envsubst <"/home/ec2-user/${APP_NAME}-iac/server/templates/appsettings.json" | sudo -u geotab-api-adapter tee ./MyGeotabAPIAdapter_SCD_linux-x64/appsettings.json >/dev/null

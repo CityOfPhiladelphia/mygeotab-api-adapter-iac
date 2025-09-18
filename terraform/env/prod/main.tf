@@ -35,9 +35,10 @@ variable "ec2_ami_id" {
 module "app" {
   source = "../../modules/app"
 
-  env_name = "prod"
-  app_name = "mygeotab-api-adapter"
-  dev_mode = true
+  env_name    = "prod"
+  app_name    = "mygeotab-api-adapter"
+  app_version = "v3.11.0"
+  dev_mode    = true
   # Prod vpc
   vpc_id = "vpc-0ec8b216c381da1e0"
   # Prod subnet private 2 (zone A) then 4 (zone B)

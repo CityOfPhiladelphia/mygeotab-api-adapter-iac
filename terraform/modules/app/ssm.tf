@@ -7,6 +7,12 @@ resource "aws_ssm_parameter" "enable_auto_start" {
   }
 }
 
+resource "aws_ssm_parameter" "app_version" {
+  name  = "/${var.app_name}/${var.env_name}/app_version"
+  value = var.app_version
+  type  = "String"
+}
+
 resource "aws_ssm_parameter" "rds_service_pw" {
   name   = "/${var.app_name}/${var.env_name}/rds_service_pw"
   value  = data.secretsmanager_login.rds_service.password
