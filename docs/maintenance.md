@@ -1,4 +1,6 @@
-### OS Updates
+# Maintenance
+
+## OS Updates
 
 OS updates can be performed with minimal downtime, potentially only a few seconds.
 
@@ -14,6 +16,7 @@ OS updates can be performed with minimal downtime, potentially only a few second
     1. Navigate to AWS web console -> EC2 -> Autoscaling
     1. Set the desired, minimum, and maximum capacity to 2.
 1. SSH onto the new server and make sure things looks good
+    1. Check the `/opt` directory
 1. Swap which server is active
     1. SSH onto the old server
     1. To minimize downtime, perform the next two steps promptly
@@ -28,7 +31,7 @@ OS updates can be performed with minimal downtime, potentially only a few second
     1. Navigate to AWS web console -> Systems Manager -> Parameter Store
     1. Set "/mygeotab-api-adapter/prod/enable_auto_start" to "yes".
 
-### Application Updates
+## Application Updates
 
 Application updates require noticeable downtime, but likely less than an hour. This is an unavoidable feature of the application.
 
