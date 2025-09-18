@@ -2,7 +2,7 @@
 
 ## OS Updates
 
-OS updates can be performed with minimal downtime, potentially only a few seconds.
+Downtime: OS updates can be performed with minimal downtime, potentially only a few seconds. The database itself will not be down, it just won't receive new data for the duration.
 
 1. Update AMI in launch template
     1. The automatic AMI updater runs monthly. If you need to force it, go to Github repository -> Actions -> Update AMI -> Run Workflow. This will create a pull request with the latest AMI (if it is newer than the current one)
@@ -33,7 +33,7 @@ OS updates can be performed with minimal downtime, potentially only a few second
 
 ## Application Updates
 
-Application updates require noticeable downtime, but likely less than an hour. This is an unavoidable feature of the application.
+Downtime: Application updates require noticeable downtime, but likely less than an hour. This is an unavoidable feature of the application. The database itself will not be down, it just won't receive new data for the duration.
 
 The ordering of these steps may seem a bit strange, but they are ordered that way to minimize downtime. The total downtime is essentially: `time it takes to make RDS snapshot before upgrade + time it takes to run any new SQL scripts + time it takes for application to start up`
 
@@ -78,6 +78,7 @@ The ordering of these steps may seem a bit strange, but they are ordered that wa
     1. Make sure there were no errors
 1. Start the application on the new server
     1. \[new server\] Stop the process: `systemctl start mygeotabadapter`. Wait for the command to finish.
+1. **Downtime ends here**
 1. Verify the app looks good:
     1. \[new server\] View logs: `journalctl -u mygeotabadapter --follow`
     1. Check grafana dashboard
@@ -85,3 +86,82 @@ The ordering of these steps may seem a bit strange, but they are ordered that wa
     1. No need to do this immediately, you can wait a bit
     1. Navigate to AWS web console -> EC2 -> Autoscaling
     1. Set the desired, minimum, and maximum capacity to 1.
+
+## DB Maintenance
+
+### OS Upgrades
+
+Are handled automatically by AWS RDS
+
+### Postgres Upgrades
+
+Both Postgres minor and major upgrades result in some downtime, but minor upgrades are very quick. While minor upgrades can be performed automatically by AWS, because they result in some downtime with non-clustered DBs, we do them manually.
+
+Minor upgrades should generally be performed whenever they become available.
+
+Major upgrades should be held off until either:
+
+* MyGeotabAPIAdapter states that it supports the new major version
+* The current major version is reaching EOL and we have to upgrade
+
+#### Minor upgrade process
+
+Updates to RDS version should be performed manually in the AWS web console first, then the Terraform code should be updated to reflect it.
+
+For minor upgrades, the chance of an application or database failure are extremely low, so priority is kept on minimizing downtime.
+
+1. *Optional* Take a manual snapshot
+    1. This is optional because there are already daily backups, and the chance of a failure is very low.
+    1. If you decide to take a snapshot, it is not necessary to stop the app beforehand
+    1. Navigate to AWS web console -> RDS -> Snapshots
+    1. Take a DB snapshot -> DB Instance -> Find correct DB Instance
+    1. This takes about 20 minutes
+1. **Only if you do step 1** Wait for snapshot to finish
+1. **Downtime starts here**
+1. Stop the app on the server
+    1. SSH onto the server
+    1. Stop the process: `systemctl stop mygeotabadapter`. Wait for the command to finish.
+1. Navigate to AWS web console -> RDS -> Databases
+1. Follow AWS instructions for performing update
+    1. Make sure to choose "Apply immediately"
+1. **Wait** until the update is fully finished
+1. Start the app on the server
+    1. SSH onto the server
+    1. Start the process: `systemctl start mygeotabadapter`.
+1. **Downtime ends here**
+1. Update terraform code
+    1. Create a new git branch like `update-{env}-postgres-{new-version}`, for example, `update-prod-postgres-17-6`
+    1. Update the `terraform/env/{env}/main.tf` file in the proper env, setting `rds_engine_version` to the new version
+    1. Push to Github, prepare pull request
+    1. **Important** Check that the terraform plan job will not make any changes to the RDS. Since you already updated the RDS in AWS, it should pick up that the versions match, and not try to change anything.
+    1. Merge pull request
+
+#### Major upgrade process
+
+Updates to RDS version should be performed manually in the AWS web console first, then the Terraform code should be updated to reflect it.
+
+For major upgrades, the chance of an application or database failure are significant enough that priority is kept on stability and rollback-ability.
+
+1. **Downtime starts here**
+1. Stop the app on the server
+    1. SSH onto the server
+    1. Stop the process: `systemctl stop mygeotabadapter`. Wait for the command to finish.
+1. Take a manual snapshot
+    1. Navigate to AWS web console -> RDS -> Snapshots
+    1. Take a DB snapshot -> DB Instance -> Find correct DB Instance
+    1. This takes about 20 minutes
+1. Wait for snapshot to fully finish
+1. Navigate to AWS web console -> RDS -> Databases
+1. Follow AWS instructions for performing update
+    1. Make sure to choose "Apply immediately"
+1. **Wait** until the update is fully finished
+1. Start the app on the server
+    1. SSH onto the server
+    1. Start the process: `systemctl start mygeotabadapter`.
+1. **Downtime ends here**
+1. Update terraform code
+    1. Create a new git branch like `update-{env}-postgres-{new-version}`, for example, `update-prod-postgres-17-6`
+    1. Update the `terraform/env/{env}/main.tf` file in the proper env, setting `rds_engine_version` to the new version
+    1. Push to Github, prepare pull request
+    1. **Important** Check that the terraform plan job will not make any changes to the RDS. Since you already updated the RDS in AWS, it should pick up that the versions match, and not try to change anything.
+    1. Merge pull request

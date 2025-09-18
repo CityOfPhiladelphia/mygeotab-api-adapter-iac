@@ -17,7 +17,7 @@ resource "aws_db_instance" "postgres" {
   db_name                    = length(var.rds_snapshot_arn) > 0 ? "" : "postgres"
   username                   = data.secretsmanager_login.rds_admin.login
   password                   = data.secretsmanager_login.rds_admin.password
-  auto_minor_version_upgrade = true
+  auto_minor_version_upgrade = false
   storage_encrypted          = true
   kms_key_id                 = data.aws_ssm_parameter.kms_arn.value
   deletion_protection        = !var.dev_mode
