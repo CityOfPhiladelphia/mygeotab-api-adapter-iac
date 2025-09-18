@@ -54,27 +54,13 @@ Use of the CI/CD enables automatic deployment and testing of the infrastructure.
 
 ## Development
 
-When developing new features, it is best to test the full functionality before merging to `main`. This is because the CI integration, while thorough for verifying the Terraform code itself, does not verify that the actual code will work as intended.
-
-Since we only budgeted a single environment, the prod environment, any development would either require downtime, or would require a dev environment to be spun up temporarily. Please work with Ryan Weast.
-
-### Getting credentials locally
-
-Check out the credentials that are pulled from Keeper in the [.github/workflows](.github/workflows) files. Set those up locally.
-
-### Developing AWS / Terraform code
-
-Just use `terraform apply` locally from your development machine.
-
-### Developing server configuration
-
-To test server configuration (the server/ folder), push your code to a non-main branch and update the `build_branch` parameter in terraform (in terraform/env/ folder) to that branch name. Then, use Terraform apply to update the launch template to pull from that new build branch, then replace the server. Since we only have the `prod` environment, this would cause outage. Make sure to change the `build_branch` back to main before merging the changes to main.
+See [docs/development.md](docs/development.md)
 
 ## Maintenance
 
 See [docs/maintenance.md](docs/maintenance.md)
 
-## MyGeotab API Adapter Notes
+## MyGeotab API Adapter Miscellaneous Notes
 
 This application has been very strange to set up. It does not support many modern features such as clustering or scaling. The database setup involves manually running a series of 10 or so scripts.
 
@@ -92,10 +78,13 @@ Example YYYYMM = 202503
 ### Errors
 
 * `ERROR|Hosting failed to start System.Exception: The 'AdapterMachineName' of 'XXX' is different than that of 'XXXX' logged in the adapter database for the 'DatabaseMaintenanceService2' AdapterService`
-  * Essentially, this tool is trying to "help" you by not accidentally having multiple different servers use the same database, since it is not a clustered application. However, if you turn off the old one and start a new one, it still isn't happy about this. To solve  this, I noticed that it was only using the part of the server's hostname up to the first dot, so I simply set the hostname to "mygeotab-api-adapter.whatever" so it thinks it is always the same server. If we adjust this in the future, use this sql command: `UPDATE public."OServiceTracking2" set "AdapterMachineName"='XXX';`
-* Setting up database for the first time
-  * Ideally this won't have to happen again because it was tedious. Also, the instructions didn't directly work on RDS
-    * Step 2 must be altered
+  * Essentially, this tool is trying to "help" you by not accidentally having multiple different servers use the same database, since it is not a clustered application. However, if you turn off the old one and start a new one, it still isn't happy about this. To solve this, I noticed that it was only using the part of the server's hostname up to the first dot, so I simply set the hostname to "mygeotab-api-adapter.whatever" so it thinks it is always the same server. If we adjust this in the future, use this sql command: `UPDATE public."OServiceTracking2" set "AdapterMachineName"='XXX';`
+
+### Set up notes
+
+Ideally we won't have to set up a new environment from scratch, but if we do, here are some important notes:
+
+For the initial database setup, due to how RDS super user works, step 2 must be altered to this:
 
 ```sql
 CREATE ROLE geotabadapter_client WITH
@@ -122,4 +111,4 @@ ALTER DATABASE geotabadapterdb OWNER TO geotabadapter_client
 
 ```
 
-    * These extensions must be installed. Do this by logging into the new DB not as the service user, but as the postgres admin user `CREATE EXTENSION IF NOT EXISTS pgstattuple; CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
+These extensions must be installed. Do this by logging into the service DB not as the service user, but as the postgres admin user `CREATE EXTENSION IF NOT EXISTS pgstattuple; CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
