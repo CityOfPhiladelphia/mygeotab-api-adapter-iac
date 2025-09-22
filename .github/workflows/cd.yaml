@@ -6,41 +6,13 @@ on:
 
 jobs:
   tfapply:
-    runs-on: self-hosted
-    container: buildpack-deps:bookworm
-
     strategy:
       matrix:
         TF_DIR: [./terraform/env/prod, ./terraform/common]
-
-    steps:
-      - uses: actions/checkout@v4
-        name: Checkout source code
-      - name: Retrieve secrets from Keeper
-        id: ksecrets
-        uses: Keeper-Security/ksm-action@master
-        with:
-          keeper-secret-config: ${{ secrets.KSM_CONFIG }}
-          secrets: |-
-            sd33hj2cVYiRB4TEhAG_jg/field/password > env:TF_TOKEN
-            9Vi7qUgp2ht2JvmZRs-YXA/field/login > env:AWS_ACCESS_KEY_ID
-            9Vi7qUgp2ht2JvmZRs-YXA/field/password > env:AWS_SECRET_ACCESS_KEY
-      - name: Setup Nodejs
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          check-latest: true
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ env.TF_TOKEN }}
-      - name: Terraform Init
-        run: |
-          cd ${{ matrix.TF_DIR }}
-          terraform init
-      - name: Terraform Apply
-        run: |
-          cd ${{ matrix.TF_DIR }}
-          terraform apply -auto-approve
-        env:
-          KEEPER_CREDENTIAL: ${{ secrets.KSM_CONFIG }}
+    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_apply.yaml@main
+    with:
+      tf_dir: ${{ matrix.TF_DIR }}
+      tf_token_keeper_path: sd33hj2cVYiRB4TEhAG_jg/field/password
+      aws_access_key_id_keeper_path: 9Vi7qUgp2ht2JvmZRs-YXA/field/login
+      aws_secret_access_key_keeper_path: 9Vi7qUgp2ht2JvmZRs-YXA/field/password
+    secrets: inherit
