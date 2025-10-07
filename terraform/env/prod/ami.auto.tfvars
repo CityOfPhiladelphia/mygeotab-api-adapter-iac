@@ -1,2 +1,3 @@
-# AMI ARN: arn:aws:ssm:us-east-1::parameter/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.12-x86_64
-ec2_ami_id = "ami-0886832e6b5c3b9e2"
+# AMI Name: al2023-ami-2023.9.20250929.0-kernel-6.12-x86_64
+# AMI Desc: Amazon Linux 2023 AMI 2023.9.20250929.0 x86_64 HVM kernel-6.12
+ec2_ami_id = "ami-03c4f11b50838ab5d"
