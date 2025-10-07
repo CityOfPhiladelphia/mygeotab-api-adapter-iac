@@ -52,5 +52,5 @@ module "app" {
   ec2_instance_type = "t3.medium"
   ssh_key_name      = "citygeo"
   ec2_ami_id        = var.ec2_ami_id
-  build_branch      = "init"
+  build_branch      = "main"
 }
