@@ -2,8 +2,8 @@ name: Update AMI
 on:
   workflow_dispatch:
   schedule:
-    # First Tuesday of the month
-    - cron: "0 0 1-7 * TUE"
+    # 5th day of the month
+    - cron: "0 0 5 * *"
 
 jobs:
   update_ami:
