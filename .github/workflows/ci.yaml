@@ -27,6 +27,7 @@ jobs:
     secrets: inherit
 
   tfplan:
+    if: github.ref != 'refs/heads/main' # No reason to run plan on main
     strategy:
       matrix:
         TF_DIR: [./terraform/env/prod, ./terraform/common]
