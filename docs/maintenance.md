@@ -95,9 +95,7 @@ Are handled automatically by AWS RDS
 
 ### Postgres Upgrades
 
-Both Postgres minor and major upgrades result in some downtime, but minor upgrades are very quick. While minor upgrades can be performed automatically by AWS, they result in some downtime with non-clustered DBs, so we do them manually.
-
-Minor upgrades should generally be performed whenever they become available.
+Both Postgres minor and major upgrades result in some downtime, but minor upgrades are very quick. For security reasons, minor upgrades are handled automatically by AWS.
 
 Major upgrades should be held off until either:
 
@@ -106,35 +104,9 @@ Major upgrades should be held off until either:
 
 #### Minor upgrade process
 
-Updates to RDS version should be performed manually in the AWS web console first, then the Terraform code should be updated to reflect it.
+Minor upgrades are handled automatically by AWS. They typically involve a reboot, so the database will be unavailable for about a minute. MyGeotabAPIAdapter *should* just reconnect when the DB is back up. No alarms should trigger as only one minute of DB downtime is well below the threshold.
 
-For minor upgrades, the chance of an application or database failure are extremely low, so priority is kept on minimizing downtime.
-
-1. *Optional* Take a manual snapshot
-    1. This is optional because there are already daily backups, and the chance of a failure is very low.
-    1. If you decide to take a snapshot, it is not necessary to stop the app beforehand
-    1. Navigate to AWS web console -> RDS -> Snapshots
-    1. Take a DB snapshot -> DB Instance -> Find correct DB Instance
-    1. This takes about 20 minutes
-1. **Only if you do step 1** Wait for snapshot to finish
-1. **Downtime starts here**
-1. Stop the app on the server
-    1. SSH onto the server
-    1. Stop the process: `systemctl stop mygeotabadapter`. Wait for the command to finish.
-1. Navigate to AWS web console -> RDS -> Databases
-1. Follow AWS instructions for performing update
-    1. Make sure to choose "Apply immediately"
-1. **Wait** until the update is fully finished
-1. Start the app on the server
-    1. SSH onto the server
-    1. Start the process: `systemctl start mygeotabadapter`.
-1. **Downtime ends here**
-1. Update terraform code
-    1. Create a new git branch like `update-{env}-postgres-{new-version}`, for example, `update-prod-postgres-17-6`
-    1. Update the `terraform/env/{env}/main.tf` file in the proper env, setting `rds_engine_version` to the new version
-    1. Push to Github, prepare pull request
-    1. **Important** Check that the terraform plan job will not make any changes to the RDS. Since you already updated the RDS in AWS, it should pick up that the versions match, and not try to change anything.
-    1. Merge pull request
+After a minor upgrade occurs, the value of `rds_engine_version` in `terraform/env/{env}/main.tf` may no longer match, but this is okay because Terraform is configured to ignore differences.
 
 #### Major upgrade process
 

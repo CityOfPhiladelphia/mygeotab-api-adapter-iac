@@ -17,7 +17,7 @@ resource "aws_db_instance" "postgres" {
   db_name                    = length(var.rds_snapshot_arn) > 0 ? "" : "postgres"
   username                   = data.secretsmanager_login.rds_admin.login
   password                   = data.secretsmanager_login.rds_admin.password
-  auto_minor_version_upgrade = false
+  auto_minor_version_upgrade = true
   storage_encrypted          = true
   kms_key_id                 = data.aws_ssm_parameter.kms_arn.value
   deletion_protection        = !var.dev_mode
@@ -28,4 +28,11 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids = [aws_security_group.rds.id]
 
   tags = local.default_tags
+
+  // Required because auto minor upgrades will change engine version
+  lifecycle {
+    ignore_changes = [
+      engine_version,
+    ]
+  }
 }
