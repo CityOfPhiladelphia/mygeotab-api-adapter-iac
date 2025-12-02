@@ -7,13 +7,7 @@ terraform {
       version = "~> 6.0"
     }
   }
-  #cloud {
-  #  organization = "Philadelphia"
 
-  #  workspaces {
-  #    name = "mygeotab-api-adapter-common"
-  #  }
-  #}
   backend "s3" {
     bucket = "phl-citygeo-terraform-state"
     # CHANGE ME!
