@@ -33,15 +33,12 @@ provider "aws" {
 provider "secretsmanager" {
 }
 
-variable "ec2_ami_id" {
-  type = string
-}
-
 module "app" {
   source = "../../modules/app"
 
-  env_name    = "prod"
-  app_name    = "mygeotab-api-adapter"
+  env_name = "prod"
+  app_name = "mygeotab-api-adapter"
+  # renovate: datasource=github-releases depName=Geotab/mygeotab-api-adapter
   app_version = "v3.11.0"
   dev_mode    = true
   # Prod vpc
@@ -56,6 +53,9 @@ module "app" {
   # EC2
   ec2_instance_type = "t3.medium"
   ssh_key_name      = "citygeo"
-  ec2_ami_id        = var.ec2_ami_id
-  build_branch      = "main"
+  # Note: AMI is hardcoded to Kernel 6.12. Make note to occasionally update that manually
+  # amiFilter=[{"Name":"owner-id","Values":["137112412989"]},{"Name":"name","Values":["al2023-ami-2023*-kernel-6.12-x86_64"]},{"Name":"architecture","Values":["x86_64"]},{"Name":"virtualization-type","Values":["hvm"]}]
+  # currentImageName=al2023-ami-2023.9.20251117.1-kernel-6.12-x86_64
+  ec2_ami_id   = "ami-0f00d706c4a80fd93"
+  build_branch = "main"
 }
