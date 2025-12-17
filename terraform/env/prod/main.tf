@@ -39,7 +39,7 @@ module "app" {
   env_name = "prod"
   app_name = "mygeotab-api-adapter"
   # renovate: datasource=github-releases depName=Geotab/mygeotab-api-adapter
-  app_version = "v3.11.0"
+  app_version = "v3.14.0"
   dev_mode    = true
   # Prod vpc
   vpc_id = "vpc-0ec8b216c381da1e0"
