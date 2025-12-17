@@ -4,11 +4,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.0"
+      version = "6.26.0"
     }
     secretsmanager = {
       source  = "keeper-security/secretsmanager"
-      version = ">= 1.1.5"
+      version = "1.1.7"
     }
   }
 }
