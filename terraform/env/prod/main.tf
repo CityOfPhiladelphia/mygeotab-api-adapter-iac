@@ -36,8 +36,9 @@ provider "secretsmanager" {
 module "app" {
   source = "../../modules/app"
 
-  env_name    = "prod"
-  app_name    = "mygeotab-api-adapter"
+  env_name = "prod"
+  app_name = "mygeotab-api-adapter"
+  # renovate: datasource=github-releases depName=Geotab/mygeotab-api-adapter
   app_version = "v3.11.0"
   dev_mode    = true
   # Prod vpc

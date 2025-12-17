@@ -51,6 +51,12 @@
       "separateMinorPatch": true
     },
     {
+      "matchDatasources": [
+        "github-releases"
+      ],
+      "separateMinorPatch": true
+    },
+    {
       "matchFileNames": [
         "terraform/env/dev/**"
       ],
