@@ -75,7 +75,7 @@ prometheus.remote_write "prod" {
     url = "https://citygeo-grafana.phila.gov:9090/api/v1/push"
 
     headers = {
-      "X-Scope-OrgID" = "main",
+      "X-Scope-OrgID" = "citygeo",
     }
 
     basic_auth {
@@ -163,6 +163,7 @@ loki.source.file "logs_integrations_integrations_node_exporter_direct_scrape" {
 loki.write "prod" {
   endpoint {
     url = "https://citygeo-grafana.phila.gov:3100/loki/api/v1/push"
+    tenant_id = "citygeo"
 
     basic_auth {
       username = sys.env("LOKI_USER")
