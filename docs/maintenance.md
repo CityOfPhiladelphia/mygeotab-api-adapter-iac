@@ -37,6 +37,9 @@ Downtime: Application updates require noticeable downtime, but likely less than 
 
 The ordering of these steps may seem a bit strange, but they are ordered that way to minimize downtime. The total downtime is essentially: `time it takes to make RDS snapshot before upgrade + time it takes to run any new SQL scripts + time it takes for application to start up`
 
+1. Update `appsettings.json` if changed
+    1. Check the [changelog](https://docs.google.com/document/d/1Y_9FnHPldeX4_aPViUUOi_8y2UJU1lKcfb1SBnu-lj8/edit?tab=t.0#heading=h.zud3ywp8kdr) and see if appsettings.json changed. If so, make sure to update [server/templates/appsettings.json](../server/templates/appsettings.json) to match
+    1. Commit these changes to git and ensure they follow through to the main branch
 1. Update `app_version` in Terraform
     1. Create a new branch in the Git repo, maybe like `update-{env}-app-{new_version}`, for example, `update-prod-app-v3-11-0`.
     1. Update `app_version` for the proper environment, in `tf/env/{env}/main.tf`
