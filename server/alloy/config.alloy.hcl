@@ -72,7 +72,7 @@ scrape_interval = "15s"
 // Configure a prometheus.remote_write component to send metrics to a Prometheus server.
 prometheus.remote_write "prod" {
   endpoint {
-    url = "https://citygeo-grafana.phila.gov:9090/api/v1/push"
+    url = "https://grafana.citygeo.phila.gov:9090/api/v1/push"
 
     headers = {
       "X-Scope-OrgID" = "citygeo",
@@ -162,7 +162,7 @@ loki.source.file "logs_integrations_integrations_node_exporter_direct_scrape" {
 
 loki.write "prod" {
   endpoint {
-    url = "https://citygeo-grafana.phila.gov:3100/loki/api/v1/push"
+    url = "https://grafana.citygeo.phila.city:3100/loki/api/v1/push"
     tenant_id = "citygeo"
 
     basic_auth {
