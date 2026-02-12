@@ -72,7 +72,7 @@ scrape_interval = "15s"
 // Configure a prometheus.remote_write component to send metrics to a Prometheus server.
 prometheus.remote_write "prod" {
   endpoint {
-    url = "https://grafana.citygeo.phila.gov:9090/api/v1/push"
+    url = "https://grafana.citygeo.phila.city:9090/api/v1/push"
 
     headers = {
       "X-Scope-OrgID" = "citygeo",
