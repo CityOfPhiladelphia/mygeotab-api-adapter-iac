@@ -14,6 +14,10 @@ export APP_VERSION=$(aws ssm get-parameter --name "/$APP_NAME/$ENV_NAME/app_vers
 # Set hostname to `app-env-{old hostname}`
 sudo hostnamectl hostname "${APP_NAME}.${ENV_NAME}-$(hostnamectl hostname)"
 sudo timedatectl set-timezone America/New_York
+# Update DNS server (don't know why I need to do this manually)
+# Otherwise can't resolve phila.city domains
+sudo resolvectl domain ens5 city.phila.local
+sudo resolvectl dns ens5 170.115.97.22 170.115.97.23
 # Install dependencies
 sudo dnf install -y libicu postgresql15 cronie
 # Create geotab user
