@@ -51,8 +51,8 @@ sudo cp /home/ec2-user/connect-db.sh /root/connect-db.sh
 envsubst '$RDS_HOST $RDS_DB $RDS_USER' <"/home/ec2-user/${APP_NAME}-iac/server/templates/auto_restarter.sh" | sudo tee /root/auto_restarter.sh
 sudo chmod u+x /root/auto_restarter.sh
 echo "* * * * * root /root/auto_restarter.sh" | sudo tee /etc/cron.d/geotab_auto_restarter
-systemctl start crond
-systemctl enable crond
+sudo systemctl start crond
+sudo systemctl enable crond
 
 # Limit journal size to 1gb (default is 4gb which is probably fine)
 echo "SystemMaxFileSize=1G" | sudo tee -a /etc/systemd/journald.conf
