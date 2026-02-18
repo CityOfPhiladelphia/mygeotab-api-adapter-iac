@@ -2,5 +2,5 @@ TIME_SINCE_LAST_UPDATE=$(psql -h $RDS_HOST -d $RDS_DB -U $RDS_USER -c 'SELECT RO
 # 5 minutes and only if the service falsely claims it is running
 if systemctl is-active --quiet mygeotabadapter && [ $TIME_SINCE_LAST_UPDATE -gt 300 ]; then
   echo "Restarting due to long time since last update..." | tee -a /var/log/auto_restart_geotab.log
-  # systemctl restart mygeotabadapter
+  systemctl restart mygeotabadapter
 fi
