@@ -55,7 +55,7 @@ module "app" {
   ssh_key_name      = "citygeo"
   # Note: AMI is hardcoded to Kernel 6.12. Make note to occasionally update that manually
   # amiFilter=[{"Name":"owner-id","Values":["137112412989"]},{"Name":"name","Values":["al2023-ami-2023*-kernel-6.12-x86_64"]},{"Name":"architecture","Values":["x86_64"]},{"Name":"virtualization-type","Values":["hvm"]}]
-  # currentImageName=al2023-ami-2023.10.20260202.2-kernel-6.12-x86_64
-  ec2_ami_id   = "ami-02777684819ca2214"
+  # currentImageName=al2023-ami-2023.10.20260216.1-kernel-6.12-x86_64
+  ec2_ami_id   = "ami-04752fceda1274920"
   build_branch = "main"
 }
