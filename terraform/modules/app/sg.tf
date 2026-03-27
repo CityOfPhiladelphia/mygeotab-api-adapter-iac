@@ -27,6 +27,16 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_phl" {
   cidr_ipv4   = "10.0.0.0/8"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "rds_from_variety" {
+  security_group_id = aws_security_group.rds.id
+
+  description = "RDS inbound access from Citygeo Variety"
+  ip_protocol = "tcp"
+  from_port   = 5432
+  to_port     = 5432
+  cidr_ipv4   = "100.64.0.0/16"
+}
+
 // EC2 security group
 resource "aws_security_group" "ec2" {
   name        = "${var.app_name}-${var.env_name}-ec2"
