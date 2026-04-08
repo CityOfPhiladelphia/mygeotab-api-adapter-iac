@@ -17,6 +17,8 @@ Downtime: OS updates can be performed with minimal downtime, potentially only a 
     1. Set the desired, minimum, and maximum capacity to 2.
 1. SSH onto the new server and make sure things looks good
     1. Check the `/opt` directory
+    2. Check the startup script log for errors: `cat /var/log/user-data.log`
+    3. Check appsettings.json `cat /opt/geotab/appsettings.json`, especially the database connection string at the top
 1. Swap which server is active
     1. SSH onto the old server
     1. To minimize downtime, perform the next two steps promptly
@@ -52,9 +54,10 @@ The ordering of these steps may seem a bit strange, but they are ordered that wa
 1. Launch new server
     1. Navigate to AWS web console -> EC2 -> Autoscaling
     1. Set the desired, minimum, and maximum capacity to 2.
-1. Quick check on the new server
-    1. SSH onto the new server
-    1. Make sure that the new version was downloaded properly and things look right
+1. SSH onto the new server and make sure things looks good
+    1. Check the `/opt` directory
+    2. Check the startup script log for errors: `cat /var/log/user-data.log`
+    3. Check appsettings.json `cat /opt/geotab/appsettings.json`, especially the database connection string at the top
 1. Download DB scripts to your local computer
     1. Go to the Github release for the version you are updating to (i.e. <https://github.com/Geotab/mygeotab-api-adapter/releases/tag/{version}>)
     1. Download "PostgreSQL.zip"
@@ -79,6 +82,7 @@ The ordering of these steps may seem a bit strange, but they are ordered that wa
     1. You have to manually execute SQL scripts against the database, sequentially, starting at one higher than the previous minor version. For example, if you are updating from `3.11.0` to `3.13.0`, you must first execute the `3.12.0` script, then the `3.13.0` script. If you are updating only one version, then there is only one script to run
     1. To run the script, basically just copy it into your SQL tool then execute
     1. Make sure there were no errors
+    1. Check the table `MiddlewareVersionInfo2` and see as each script adds the new version
 1. Start the application on the new server
     1. \[new server\] Stop the process: `systemctl start mygeotabadapter`. Wait for the command to finish.
 1. **Downtime ends here**
