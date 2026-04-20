@@ -10,18 +10,18 @@ env:
 
 jobs:
   shellcheck:
-    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/shellcheck.yaml@main
+    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/shellcheck.yaml@354663677d6f5893fb29b3d1eaac7fda4812efa9 # main
     with:
       files: "server/build.sh"
       cli_opts: "-e SC2155"
 
   terraform_fmt:
-    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_fmt.yaml@main
+    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_fmt.yaml@354663677d6f5893fb29b3d1eaac7fda4812efa9 # main
     with:
       parent_tf_dir: "./terraform"
 
   tflint:
-    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/tflint.yaml@main
+    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/tflint.yaml@354663677d6f5893fb29b3d1eaac7fda4812efa9 # main
     with:
       parent_tf_dir: "./terraform"
     secrets: inherit
@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         TF_DIR: [./terraform/env/prod, ./terraform/common]
-    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_plan.yaml@main
+    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_plan.yaml@354663677d6f5893fb29b3d1eaac7fda4812efa9 # main
     with:
       tf_dir: ${{ matrix.TF_DIR }}
       tf_token_keeper_path: sd33hj2cVYiRB4TEhAG_jg/field/password
