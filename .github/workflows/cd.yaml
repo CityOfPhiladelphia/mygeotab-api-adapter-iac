@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         TF_DIR: [./terraform/env/prod, ./terraform/common]
-    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_apply.yaml@main
+    uses: CityOfPhiladelphia/citygeo-shared-workflows/.github/workflows/terraform_apply.yaml@85bf2b676d12e99dc9c42bc17822e8e596aad98e # main
     with:
       tf_dir: ${{ matrix.TF_DIR }}
       tf_token_keeper_path: sd33hj2cVYiRB4TEhAG_jg/field/password
